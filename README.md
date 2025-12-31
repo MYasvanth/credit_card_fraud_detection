@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Credit Card Fraud Detection
 
 This project implements a machine learning pipeline for detecting credit card fraud using software engineering best practices and MLOps principles.
@@ -40,7 +39,11 @@ credit_card_fraud_detection/
 2. Create a virtual environment: `python -m venv venv`
 3. Activate the environment: `venv\Scripts\activate` (Windows)
 4. Install dependencies: `pip install -r requirements.txt`
-5. Run tests: `pytest`
+5. **Download the dataset:**
+   - Get `creditcard.csv` from: https://www.kaggle.com/mlg-ulb/creditcardfraud
+   - Place it in `data/raw/creditcard.csv`
+   - The file will be automatically tracked with Git LFS
+6. Run tests: `pytest`
 
 ## Usage
 
@@ -56,6 +59,3 @@ Follow standard Git workflow. Ensure tests pass before merging.
 ## License
 
 [Add license here]
-=======
-# credit_card_fraud_detection
->>>>>>> a4463932c64a156f728feb413bf5178fd920f3ce
