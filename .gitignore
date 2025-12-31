@@ -132,4 +132,4 @@ mlruns/
 wandb/
 
 # Data (uncomment if needed, but generally keep data out of git)
-# data/
+data/
