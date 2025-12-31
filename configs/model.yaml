@@ -1,0 +1,52 @@
+model:
+  type: "random_forest"
+  parameters:
+    n_estimators: 100
+    max_depth: 10
+    min_samples_split: 2
+    min_samples_leaf: 1
+    random_state: 42
+    class_weight: "balanced"
+
+# Alternative model configurations
+models:
+  random_forest:
+    type: "RandomForestClassifier"
+    parameters:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+      random_state: 42
+      class_weight: "balanced"
+  
+  xgboost:
+    type: "XGBClassifier"
+    parameters:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      random_state: 42
+      scale_pos_weight: 1
+  
+  logistic_regression:
+    type: "LogisticRegression"
+    parameters:
+      C: 1.0
+      penalty: "l2"
+      solver: "liblinear"
+      random_state: 42
+      class_weight: "balanced"
+      max_iter: 1000
+  
+  svm:
+    type: "SVC"
+    parameters:
+      C: 1.0
+      kernel: "rbf"
+      gamma: "scale"
+      probability: true
+      random_state: 42
+      class_weight: "balanced"

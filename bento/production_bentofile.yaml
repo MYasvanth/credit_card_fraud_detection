@@ -1,0 +1,33 @@
+service: "enhanced_service:svc"
+labels:
+  owner: mlops-team
+  project: credit-card-fraud-detection
+  environment: production
+include:
+- "enhanced_service.py"
+- "src/"
+- "models/"
+- "configs/"
+python:
+  requirements_txt: "./requirements.txt"
+  lock_packages: true
+docker:
+  distro: debian
+  python_version: "3.9"
+  cuda_version: null
+  system_packages:
+    - git
+    - curl
+  env:
+    - MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+    - BENTOML_HOME=/opt/bentoml
+  setup_script: |
+    pip install --upgrade pip
+    pip install prometheus-client
+resources:
+  cpu: "2"
+  memory: "4Gi"
+monitoring:
+  enabled: true
+  data_capture:
+    enabled: true

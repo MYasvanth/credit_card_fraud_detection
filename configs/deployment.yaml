@@ -1,0 +1,4 @@
+deployment:
+  model_name: "credit_fraud_model"
+  version: "1.0"
+  port: 3000

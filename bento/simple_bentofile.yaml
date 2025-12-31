@@ -1,0 +1,10 @@
+service: "bento_service:svc"
+include:
+- "bento_service.py"
+- "models/"
+python:
+  packages:
+  - pandas
+  - numpy
+  - scikit-learn
+  - joblib

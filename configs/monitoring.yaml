@@ -1,0 +1,61 @@
+monitoring:
+  drift_threshold: 0.05
+  degradation_threshold: 0.05
+  numerical_columns:
+    - V1
+    - V2
+    - V3
+    - V4
+    - V5
+    - V6
+    - V7
+    - V8
+    - V9
+    - V10
+    - V11
+    - V12
+    - V13
+    - V14
+    - V15
+    - V16
+    - V17
+    - V18
+    - V19
+    - V20
+    - V21
+    - V22
+    - V23
+    - V24
+    - V25
+    - V26
+    - V27
+    - V28
+    - Amount
+
+retraining:
+  drift_threshold: 0.1  # 10% features with drift
+  performance_drop_threshold: 0.05  # 5% F1 drop
+  max_days_since_training: 30
+  auto_trigger: true
+
+notifications:
+  channels:
+    - log
+    - email  # Placeholder for email integration
+    - slack  # Placeholder for Slack integration
+  email_recipients:
+    - mlops@company.com
+  slack_webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+
+serving:
+  host: "0.0.0.0"
+  port: 5000
+  model_name: "credit_card_fraud_detector"
+  stage: "Production"
+  batch_size_limit: 1000
+
+ab_testing:
+  default_traffic_split: 0.5
+  min_sample_size: 1000
+  confidence_level: 0.95
+  test_duration_days: 7

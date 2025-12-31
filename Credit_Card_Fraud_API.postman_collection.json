@@ -1,0 +1,331 @@
+{
+	"info": {
+		"name": "Credit Card Fraud Detection API",
+		"description": "Complete API testing collection for fraud detection ML model",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": ["{{base_url}}"],
+					"path": ["health"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Model is loaded', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.model_loaded).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Single Fraud Prediction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"features\": {\n    \"V1\": -1.359807134,\n    \"V2\": -0.072781173,\n    \"V3\": 2.536346738,\n    \"V4\": 1.378155224,\n    \"V5\": -0.338320770,\n    \"V6\": 0.462387778,\n    \"V7\": 0.239598554,\n    \"V8\": 0.098697901,\n    \"V9\": 0.363786969,\n    \"V10\": 0.090794172,\n    \"V11\": -0.551599533,\n    \"V12\": -0.617800856,\n    \"V13\": -0.991389847,\n    \"V14\": -0.311169354,\n    \"V15\": 1.468176972,\n    \"V16\": -0.470400525,\n    \"V17\": 0.207971242,\n    \"V18\": 0.025791513,\n    \"V19\": 0.403992960,\n    \"V20\": 0.251412098,\n    \"V21\": -0.018306778,\n    \"V22\": 0.277837576,\n    \"V23\": -0.110473910,\n    \"V24\": 0.066928075,\n    \"V25\": 0.128539358,\n    \"V26\": -0.189114844,\n    \"V27\": 0.133558377,\n    \"V28\": -0.021053053,\n    \"Amount\": 149.62,\n    \"Time\": 0\n  }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/predict",
+					"host": ["{{base_url}}"],
+					"path": ["predict"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Has prediction field', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('prediction');",
+							"});",
+							"",
+							"pm.test('Response time under 2s', function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Batch Predictions",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"transactions\": [\n    {\n      \"V1\": -1.36, \"V2\": -0.07, \"V3\": 2.54, \"V4\": 1.38, \"V5\": -0.34,\n      \"V6\": 0.46, \"V7\": 0.24, \"V8\": 0.10, \"V9\": 0.36, \"V10\": 0.09,\n      \"V11\": -0.55, \"V12\": -0.62, \"V13\": -0.99, \"V14\": -0.31, \"V15\": 1.47,\n      \"V16\": -0.47, \"V17\": 0.21, \"V18\": 0.03, \"V19\": 0.40, \"V20\": 0.25,\n      \"V21\": -0.02, \"V22\": 0.28, \"V23\": -0.11, \"V24\": 0.07, \"V25\": 0.13,\n      \"V26\": -0.19, \"V27\": 0.13, \"V28\": -0.02, \"Amount\": 149.62, \"Time\": 0\n    },\n    {\n      \"V1\": 1.23, \"V2\": 0.45, \"V3\": -1.20, \"V4\": 0.89, \"V5\": 0.12,\n      \"V6\": -0.34, \"V7\": -0.15, \"V8\": 0.67, \"V9\": -0.23, \"V10\": 0.78,\n      \"V11\": 0.45, \"V12\": 0.23, \"V13\": 0.56, \"V14\": 0.12, \"V15\": -0.89,\n      \"V16\": 0.34, \"V17\": -0.12, \"V18\": 0.45, \"V19\": -0.23, \"V20\": 0.67,\n      \"V21\": 0.12, \"V22\": -0.34, \"V23\": 0.56, \"V24\": -0.12, \"V25\": 0.23,\n      \"V26\": 0.45, \"V27\": -0.67, \"V28\": 0.12, \"Amount\": 89.50, \"Time\": 300\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/predict/batch",
+					"host": ["{{base_url}}"],
+					"path": ["predict", "batch"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Returns array of predictions', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.equal(2);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Model Info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/model/info",
+					"host": ["{{base_url}}"],
+					"path": ["model", "info"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Has model information', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('model_name');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "API Metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/metrics",
+					"host": ["{{base_url}}"],
+					"path": ["metrics"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Has metrics data', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('requests_total');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Model Reload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/model/reload",
+					"host": ["{{base_url}}"],
+					"path": ["model", "reload"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Reload successful', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.message).to.include('reloaded');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Drift Monitoring",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/monitoring/drift",
+					"host": ["{{base_url}}"],
+					"path": ["monitoring", "drift"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Has drift information', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('drift_detected');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Start A/B Test",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/ab-test/start?model_a=model_v1&model_b=model_v2",
+					"host": ["{{base_url}}"],
+					"path": ["ab-test", "start"],
+					"query": [
+						{
+							"key": "model_a",
+							"value": "model_v1"
+						},
+						{
+							"key": "model_b",
+							"value": "model_v2"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('A/B test started', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.status).to.equal('started');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "Model Comparison Results",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/comparison/results",
+					"host": ["{{base_url}}"],
+					"path": ["comparison", "results"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Has comparison data', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('best_model');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set timestamp for requests",
+					"pm.environment.set('timestamp', new Date().toISOString());"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}
