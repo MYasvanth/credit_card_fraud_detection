@@ -132,4 +132,7 @@ mlruns/
 wandb/
 
 # Data (uncomment if needed, but generally keep data out of git)
-data/
+data/processed/
+data/external/
+# Keep raw data but use LFS for large files
+# data/raw/ is tracked with LFS
