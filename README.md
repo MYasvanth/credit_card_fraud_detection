@@ -58,4 +58,3 @@ Follow standard Git workflow. Ensure tests pass before merging.
 
 ## License
 
-[Add license here]
