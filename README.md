@@ -52,8 +52,4 @@ credit_card_fraud_detection/
 - Model training: Execute scripts in `src/models/`
 - Deployment: Use configurations in `deployment/`
 
-## Contributing
-
-Follow standard Git workflow. Ensure tests pass before merging.
-
 ## License
