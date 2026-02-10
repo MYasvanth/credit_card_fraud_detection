@@ -14,6 +14,7 @@ import mlflow
 import mlflow.sklearn
 
 from src.features.scaler import FeatureScaler
+from src.data.loader import load_data
 from src.utils.logger import logger
 from src.utils.constants import MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI
 
@@ -25,34 +26,27 @@ def main():
     with mlflow.start_run():
         logger.info("Starting MLflow training run...")
         
-        # Create synthetic data
-        np.random.seed(42)
-        n_samples = 2000
+        # Load real data
+        data_path = "data/raw/creditcard.csv"
+        df = load_data(data_path)
         
-        # Generate realistic fraud detection data
-        X_normal = np.random.randn(int(n_samples * 0.95), 29) * 0.5
-        X_fraud = np.random.randn(int(n_samples * 0.05), 29) * 2.0 + 3.0
+        # Drop Time column if exists (not useful for prediction)
+        if 'Time' in df.columns:
+            df = df.drop('Time', axis=1)
         
-        X = np.vstack([X_normal, X_fraud])
-        y = np.hstack([np.zeros(len(X_normal)), np.ones(len(X_fraud))])
-        
-        # Shuffle
-        indices = np.random.permutation(len(X))
-        X = X[indices]
-        y = y[indices]
-        
-        feature_names = [f"V{i}" for i in range(1, 29)] + ["Amount"]
-        df = pd.DataFrame(X, columns=feature_names)
-        df["Class"] = y
+        logger.info(f"Loaded real data: {df.shape}")
         
         # Prepare data
         X = df.drop("Class", axis=1)
         y = df["Class"]
         
+        feature_names = list(X.columns)
+        
         # Log data info
-        mlflow.log_param("n_samples", n_samples)
+        mlflow.log_param("n_samples", len(df))
         mlflow.log_param("n_features", X.shape[1])
         mlflow.log_param("fraud_ratio", y.mean())
+        mlflow.log_param("data_source", "real_creditcard_csv")
         
         logger.info(f"Data shape: {X.shape}")
         logger.info(f"Class distribution: {y.value_counts().to_dict()}")
@@ -204,7 +198,7 @@ def main():
         print("MLFLOW TRAINING COMPLETED")
         print("="*60)
         print(f"MLflow Run ID: {mlflow.active_run().info.run_id}")
-        print(f"Dataset Size: {n_samples} samples")
+        print(f"Dataset Size: {len(df)} samples (REAL DATA)")
         print(f"Test Accuracy: {report['accuracy']:.4f}")
         
         if '1' in report:
