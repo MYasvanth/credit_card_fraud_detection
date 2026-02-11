@@ -3,7 +3,7 @@
 
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
 import numpy as np
@@ -12,35 +12,8 @@ from sklearn.metrics import classification_report
 import mlflow
 
 from src.features.scaler import FeatureScaler
+from src.data.loader import load_data
 from src.utils.constants import MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI
-
-def create_realistic_imbalanced_data():
-    """Create realistic imbalanced fraud detection data."""
-    np.random.seed(42)
-    n_samples = 5000
-    
-    # Normal transactions (95%)
-    n_normal = int(n_samples * 0.95)
-    X_normal = np.random.randn(n_normal, 29) * 0.8
-    
-    # Fraud transactions (5%) - more subtle differences
-    n_fraud = n_samples - n_normal
-    X_fraud = np.random.randn(n_fraud, 29) * 1.2
-    X_fraud[:, :10] += 1.5  # Only some features differ
-    
-    X = np.vstack([X_normal, X_fraud])
-    y = np.hstack([np.zeros(n_normal), np.ones(n_fraud)])
-    
-    # Shuffle
-    indices = np.random.permutation(len(X))
-    X = X[indices]
-    y = y[indices]
-    
-    feature_names = [f"V{i}" for i in range(1, 29)] + ["Amount"]
-    df = pd.DataFrame(X, columns=feature_names)
-    df["Class"] = y
-    
-    return df
 
 def train_model_type(model_type, data):
     """Train a specific model type with SMOTE and proper evaluation."""
@@ -72,17 +45,23 @@ def main():
     print("Training Multiple Fraud Detection Models")
     print("=" * 60)
     
-    # Create realistic imbalanced data
-    data = create_realistic_imbalanced_data()
-    fraud_count = data['Class'].sum()
+    # Load real data
+    data_path = "data/raw/creditcard.csv"
+    data = load_data(data_path)
+    
+    # Drop Time column if exists
+    if 'Time' in data.columns:
+        data = data.drop('Time', axis=1)
+    
+    fraud_count = int(data['Class'].sum())
     fraud_rate = fraud_count / len(data) * 100
     
-    print(f"Dataset: {len(data)} samples")
-    print(f"Fraud cases: {fraud_count} ({fraud_rate:.1f}%)")
-    print(f"Normal cases: {len(data) - fraud_count} ({100-fraud_rate:.1f}%)")
+    print(f"Dataset: {len(data)} samples (REAL DATA)")
+    print(f"Fraud cases: {fraud_count} ({fraud_rate:.2f}%)")
+    print(f"Normal cases: {len(data) - fraud_count} ({100-fraud_rate:.2f}%)")
     
     # Model types to train with SMOTE
-    model_types = ["random_forest", "logistic_regression", "xgboost"]
+    model_types = ["random_forest", "logistic_regression", "xgboost", "svm"]
     
     results = {}
     
@@ -99,11 +78,12 @@ def main():
     
     # Summary
     print("\n" + "=" * 60)
-    print("IMPROVED TRAINING SUMMARY")
+    print("TRAINING SUMMARY (REAL DATA)")
     print("=" * 60)
     for model_type, status in results.items():
         print(f"{model_type.upper():<20}: {status}")
     print("=" * 60)
+    print(f"Dataset: {len(data)} real transactions")
     print("Models trained with:")
     print("+ SMOTE oversampling")
     print("+ Class weight balancing")
