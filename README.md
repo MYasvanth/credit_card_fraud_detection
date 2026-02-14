@@ -2,6 +2,16 @@
 
 This project implements a machine learning pipeline for detecting credit card fraud using software engineering best practices and MLOps principles.
 
+## 🚀 Live Demo
+
+**API Endpoint:** https://credit-card-fraud-detection-cvnl.onrender.com
+
+### Try It Out
+
+**Interactive API Documentation:**
+- 📊 Swagger UI: https://credit-card-fraud-detection-cvnl.onrender.com/docs
+- 📖 ReDoc: https://credit-card-fraud-detection-cvnl.onrender.com/redoc
+
 ## Project Structure
 
 ```
