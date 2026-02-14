@@ -1,0 +1,12 @@
+{
+  "model_name": "credit_card_fraud_detector",
+  "model_version": "1.0.0",
+  "model_type": "random_forest",
+  "training_date": "2025-11-23",
+  "performance_metrics": {
+    "accuracy": 1.0,
+    "fraud_f1": 1.0,
+    "fraud_precision": 1.0,
+    "fraud_recall": 1.0
+  }
+}
