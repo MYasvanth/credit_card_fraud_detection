@@ -66,17 +66,33 @@ def load_model_artifacts():
     global model, scaler, pca_transformer, model_metadata
     
     try:
-        # Load main model
-        model_path = Path(MODELS_PATH) / "best_model.pkl"
-        if model_path.exists():
-            model = joblib.load(model_path)
-            logger.info("Model loaded successfully")
-        else:
-            logger.error(f"Model file not found: {model_path}")
-            raise FileNotFoundError(f"Model file not found: {model_path}")
+        # Try multiple model paths for Render compatibility
+        model_paths = [
+            Path(MODELS_PATH) / "mlflow_fraud_model.pkl",  # Real trained model
+            Path(MODELS_PATH) / "best_model.pkl",
+            Path(MODELS_PATH) / "fraud_detection_model.pkl",
+            Path("models/mlflow_fraud_model.pkl"),
+            Path("models/best_model.pkl")
+        ]
         
-        # Load preprocessing artifacts
-        scaler, pca_transformer = load_preprocessing_artifacts()
+        model_loaded = False
+        for model_path in model_paths:
+            if model_path.exists():
+                model = joblib.load(model_path)
+                logger.info(f"Model loaded successfully from {model_path}")
+                model_loaded = True
+                break
+        
+        if not model_loaded:
+            logger.error(f"No model file found. Tried: {[str(p) for p in model_paths]}")
+            raise FileNotFoundError(f"No model file found in {MODELS_PATH}")
+        
+        # Load preprocessing artifacts (optional)
+        try:
+            scaler, pca_transformer = load_preprocessing_artifacts()
+        except Exception as e:
+            logger.warning(f"Could not load preprocessing artifacts: {e}")
+            scaler, pca_transformer = None, None
         
         # Load model metadata
         metadata_path = Path(MODELS_PATH) / "model_metadata.json"
