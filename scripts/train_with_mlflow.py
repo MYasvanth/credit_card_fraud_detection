@@ -175,6 +175,34 @@ def main():
         joblib.dump(model, "models/mlflow_fraud_model.pkl")
         scaler.save("mlflow_fraud_scaler")
         
+        # Save model metadata
+        import json
+        metadata = {
+            "model_name": f"fraud_detection_{model_type}",
+            "model_type": model_type,
+            "model_version": "1.0.0",
+            "training_date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+            "data_source": "real_creditcard_csv",
+            "n_samples": len(df),
+            "n_features": X.shape[1],
+            "fraud_ratio": float(y.mean()),
+            "performance_metrics": {
+                "accuracy": float(report['accuracy']),
+                "f1_score": float(report.get('1', {}).get('f1-score', 0.0)),
+                "precision": float(report.get('1', {}).get('precision', 0.0)),
+                "recall": float(report.get('1', {}).get('recall', 0.0))
+            },
+            "training_config": {
+                "test_size": 0.2,
+                "scaling_method": "standard",
+                "random_state": 42
+            }
+        }
+        
+        with open("models/model_metadata.json", "w") as f:
+            json.dump(metadata, f, indent=2)
+        logger.info("Model metadata saved to models/model_metadata.json")
+        
         # Feature importance (only for tree-based models)
         if hasattr(model, 'feature_importances_'):
             feature_importance = pd.DataFrame({
