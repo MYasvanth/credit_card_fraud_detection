@@ -261,36 +261,21 @@ async def get_metrics():
 
 @app.get("/model/info", response_model=Dict[str, Any])
 async def get_model_info():
-    """Get latest MLflow model information."""
-    try:
-        import mlflow
-        client = mlflow.tracking.MlflowClient()
-        
-        all_models = client.search_registered_models()
-        model_names = [m.name for m in all_models]
-        
-        if not model_names:
-            return {"error": "No models registered in MLflow"}
-        
-        fraud_models = [name for name in model_names if 'fraud' in name.lower()]
-        model_name = fraud_models[0] if fraud_models else model_names[0]
-        
-        # Get LATEST version only
-        models = client.get_latest_versions(model_name)
-        if models:
-            model_info = models[0]
-            return {
-                "model_name": model_info.name,
-                "version": model_info.version,
-                "stage": model_info.current_stage,
-                "run_id": model_info.run_id,
-                "is_latest": True
-            }
-        
-        return {"error": f"No versions found for {model_name}"}
-        
-    except Exception as e:
-        return {"error": str(e)}
+    """Get model information from metadata."""
+    global model_metadata
+    
+    if not model_metadata:
+        return {"error": "Model metadata not available"}
+    
+    return {
+        "model_name": model_metadata.get("model_name", "unknown"),
+        "model_type": model_metadata.get("model_type", "unknown"),
+        "training_date": model_metadata.get("training_date", "unknown"),
+        "version": model_metadata.get("model_version", "1.0.0"),
+        "performance_metrics": model_metadata.get("performance_metrics", {}),
+        "features_count": 29,
+        "status": "deployed"
+    }
 
 
 @app.get("/model/versions", response_model=Dict[str, Any])
