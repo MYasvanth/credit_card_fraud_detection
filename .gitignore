@@ -122,10 +122,10 @@ dmypy.json
 Thumbs.db
 
 # ML specific
-models/
-*.pkl
+# models/ - Allow for deployment
+# *.pkl - Allow for deployment
 *.joblib
-*.h5
+# *.h5
 *.pb
 *.onnx
 mlruns/

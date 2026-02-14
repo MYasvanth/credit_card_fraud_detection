@@ -68,7 +68,7 @@ def load_model_artifacts():
     try:
         # Try multiple model paths for Render compatibility
         model_paths = [
-            Path(MODELS_PATH) / "mlflow_fraud_model.pkl",  # Real trained model
+            Path(MODELS_PATH) / "mlflow_fraud_model.pkl",
             Path(MODELS_PATH) / "best_model.pkl",
             Path(MODELS_PATH) / "fraud_detection_model.pkl",
             Path("models/mlflow_fraud_model.pkl"),
@@ -78,10 +78,14 @@ def load_model_artifacts():
         model_loaded = False
         for model_path in model_paths:
             if model_path.exists():
-                model = joblib.load(model_path)
-                logger.info(f"Model loaded successfully from {model_path}")
-                model_loaded = True
-                break
+                try:
+                    model = joblib.load(model_path)
+                    logger.info(f"Model loaded successfully from {model_path}")
+                    model_loaded = True
+                    break
+                except Exception as e:
+                    logger.warning(f"Failed to load {model_path}: {e}")
+                    continue
         
         if not model_loaded:
             logger.error(f"No model file found. Tried: {[str(p) for p in model_paths]}")
