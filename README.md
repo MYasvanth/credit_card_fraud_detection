@@ -43,18 +43,6 @@ credit_card_fraud_detection/
 └── README.md         # This file
 ```
 
-## Setup
-
-1. Clone the repository
-2. Create a virtual environment: `python -m venv venv`
-3. Activate the environment: `venv\Scripts\activate` (Windows)
-4. Install dependencies: `pip install -r requirements.txt`
-5. **Download the dataset:**
-   - Get `creditcard.csv` from: https://www.kaggle.com/mlg-ulb/creditcardfraud
-   - Place it in `data/raw/creditcard.csv`
-   - The file will be automatically tracked with Git LFS
-6. Run tests: `pytest`
-
 ## Usage
 
 - Data preprocessing: Run scripts in `src/data/`
