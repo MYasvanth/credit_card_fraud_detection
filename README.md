@@ -58,3 +58,5 @@ The following diagram illustrates the end-to-end MLOps architecture for the cred
 - Deployment: Use configurations in `deployment/`
 
 ## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
