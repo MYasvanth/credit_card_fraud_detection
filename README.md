@@ -42,6 +42,13 @@ credit_card_fraud_detection/
 ├── .gitignore        # Git ignore rules
 └── README.md         # This file
 ```
+## 🏗️ System Architecture
+
+The following diagram illustrates the end-to-end MLOps architecture for the credit card fraud detection system including data ingestion, feature engineering, model training, experiment tracking, and API deployment.
+
+<p align="center">
+  <img src="docs/Architecture.png" width="900">
+</p>
 
 ## Usage
 
@@ -51,3 +58,5 @@ credit_card_fraud_detection/
 - Deployment: Use configurations in `deployment/`
 
 ## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
