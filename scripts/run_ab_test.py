@@ -21,6 +21,11 @@ def load_test_data(data_path: str, target_column: str = "Class") -> pd.DataFrame
         raise FileNotFoundError(f"Test data not found at {data_path}")
 
     data = pd.read_csv(data_path)
+    
+    # Remove Time column if present (models were trained without it)
+    if 'Time' in data.columns:
+        data = data.drop('Time', axis=1)
+    
     logger.info(f"Loaded test data with shape: {data.shape}")
     return data
 
@@ -59,8 +64,12 @@ def simulate_ab_test(
     if len(results) < 2:
         raise ValueError("Could not load both models for A/B testing")
 
-    model_a_results = results.get(f"{model_a_name}_Production") or results.get(f"{model_a_name}_Staging")
-    model_b_results = results.get(f"{model_b_name}_Production") or results.get(f"{model_b_name}_Staging")
+    model_a_results = (results.get(f"{model_a_name}_Production") or 
+                      results.get(f"{model_a_name}_Staging") or 
+                      results.get(f"{model_a_name}_None"))
+    model_b_results = (results.get(f"{model_b_name}_Production") or 
+                      results.get(f"{model_b_name}_Staging") or 
+                      results.get(f"{model_b_name}_None"))
 
     if not model_a_results or not model_b_results:
         raise ValueError("Model results not found")
@@ -120,9 +129,9 @@ def simulate_ab_test(
 
             analysis["metrics"][group] = {
                 "accuracy": report["accuracy"],
-                "precision": report["1"]["precision"],
-                "recall": report["1"]["recall"],
-                "f1_score": report["1"]["f1-score"],
+                "precision": report.get("1", {}).get("precision", 0.0),
+                "recall": report.get("1", {}).get("recall", 0.0),
+                "f1_score": report.get("1", {}).get("f1-score", 0.0),
                 "sample_size": len(group_data)
             }
 
@@ -130,12 +139,22 @@ def simulate_ab_test(
     if "A" in analysis["metrics"] and "B" in analysis["metrics"]:
         f1_a = analysis["metrics"]["A"]["f1_score"]
         f1_b = analysis["metrics"]["B"]["f1_score"]
-        improvement = (f1_b - f1_a) / f1_a * 100
+        
+        # Handle division by zero
+        if f1_a == 0 and f1_b == 0:
+            improvement = 0.0
+            winner = "Tie"
+        elif f1_a == 0:
+            improvement = float('inf') if f1_b > 0 else 0.0
+            winner = "B" if f1_b > 0 else "Tie"
+        else:
+            improvement = (f1_b - f1_a) / f1_a * 100
+            winner = "B" if f1_b > f1_a else "A"
 
         analysis["comparison"] = {
             "f1_improvement": improvement,
-            "winner": "B" if f1_b > f1_a else "A",
-            "significant": abs(improvement) > 2.0  # Arbitrary threshold
+            "winner": winner,
+            "significant": abs(improvement) > 2.0 if improvement != float('inf') else True
         }
 
     logger.info(f"A/B test simulation complete. Results: {analysis['comparison']}")
