@@ -54,6 +54,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# GenAI routes
+from .routes.predict import router as predict_router
+from .routes.explain import router as explain_router
+
+app.include_router(predict_router, prefix="/v1")
+app.include_router(explain_router, prefix="/v1")
+
 # Global variables for model and preprocessors
 model = None
 scaler = None
