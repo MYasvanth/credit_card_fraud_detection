@@ -2,18 +2,17 @@
 
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
 import numpy as np
 import joblib
 from sklearn.metrics import accuracy_score, f1_score
-from src.utils.logger import logger
 
 def simple_ab_test():
     """Run simple A/B test between two models."""
     
-    logger.info("Starting simple A/B test...")
+    print("Starting simple A/B test...")
     
     # Check if models exist
     model_a_path = "models/fraud_detection_model.pkl"
@@ -31,11 +30,18 @@ def simple_ab_test():
     model_a = joblib.load(model_a_path)
     model_b = joblib.load(model_b_path)
     
-    # Generate test data
-    np.random.seed(42)
-    n_samples = 1000
-    X_test = np.random.randn(n_samples, 29)
-    y_test = np.random.choice([0, 1], size=n_samples, p=[0.95, 0.05])
+    # Load actual credit card data
+    data = pd.read_csv('data/raw/creditcard.csv')
+    
+    # Remove Time column as it's not used in training
+    X = data.drop(['Class', 'Time'], axis=1)
+    y = data['Class']
+    
+    # Use last 1000 samples as test set
+    X_test = X.tail(1000)
+    y_test = y.tail(1000)
+    
+    print(f"Test set: {len(X_test)} samples, {y_test.sum()} fraud cases")
     
     # Run predictions
     pred_a = model_a.predict(X_test)
