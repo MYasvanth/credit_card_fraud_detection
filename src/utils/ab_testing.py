@@ -108,14 +108,50 @@ class ABTester:
             roc_auc_score, confusion_matrix
         )
 
+        # Handle empty arrays
+        if len(y_true) == 0:
+            return {
+                "accuracy": 0.0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1_score": 0.0,
+                "roc_auc": 0.5,
+                "confusion_matrix": [[0, 0], [0, 0]],
+                "sample_size": 0
+            }
+
+        # Calculate basic metrics
+        accuracy = accuracy_score(y_true, y_pred)
+        precision = precision_score(y_true, y_pred, zero_division=0)
+        recall = recall_score(y_true, y_pred, zero_division=0)
+        f1 = f1_score(y_true, y_pred, zero_division=0)
+        
+        # Handle ROC AUC calculation (can fail with single class)
+        try:
+            if len(np.unique(y_true)) > 1:
+                roc_auc = roc_auc_score(y_true, y_proba)
+            else:
+                roc_auc = 0.5  # Default for single class
+        except Exception:
+            roc_auc = 0.5
+        
+        # Handle confusion matrix
+        try:
+            cm = confusion_matrix(y_true, y_pred)
+            # Ensure 2x2 matrix
+            if cm.shape != (2, 2):
+                cm = np.array([[0, 0], [0, 0]])
+        except Exception:
+            cm = np.array([[0, 0], [0, 0]])
+
         return {
-            "accuracy": accuracy_score(y_true, y_pred),
-            "precision": precision_score(y_true, y_pred, zero_division=0),
-            "recall": recall_score(y_true, y_pred, zero_division=0),
-            "f1_score": f1_score(y_true, y_pred, zero_division=0),
-            "roc_auc": roc_auc_score(y_true, y_proba),
-            "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
-            "sample_size": len(y_true)
+            "accuracy": float(accuracy),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1_score": float(f1),
+            "roc_auc": float(roc_auc),
+            "confusion_matrix": cm.tolist(),
+            "sample_size": int(len(y_true))
         }
 
     def _compare_groups(self, group_a: Dict[str, Any], group_b: Dict[str, Any]) -> Dict[str, Any]:
@@ -168,33 +204,60 @@ class ABTester:
         Returns:
             MLflow run ID
         """
-        with mlflow_manager.start_ab_test_run("model_a", "model_b"):
+        run_id = None
+        with mlflow_manager.start_ab_test_run("model_a", "model_b") as run:
             # Log test parameters
             mlflow.log_param("traffic_split", self.traffic_split)
             mlflow.log_param("total_samples", self.results["test_info"]["total_samples"])
 
-            # Log group metrics
+            # Log group metrics (filter out NaN values)
             for group in ["group_a", "group_b"]:
                 if group in self.results:
                     metrics = self.results[group]
                     for metric, value in metrics.items():
                         if isinstance(value, (int, float)):
-                            mlflow.log_metric(f"{group}_{metric}", value)
+                            # Check for NaN or infinite values
+                            if not (pd.isna(value) or np.isinf(value)):
+                                mlflow.log_metric(f"{group}_{metric}", float(value))
+                            else:
+                                # Log as parameter instead of metric for NaN/inf values
+                                mlflow.log_param(f"{group}_{metric}", str(value))
 
-            # Log comparison results
+            # Log comparison results (filter out NaN values)
             if "comparison" in self.results:
                 comp = self.results["comparison"]
-                mlflow.log_param("winner", comp["winner"])
-                mlflow.log_metric("max_improvement", comp["max_improvement"])
+                
+                # Log winner as parameter
+                mlflow.log_param("winner", comp.get("winner", "Unknown"))
+                
+                # Log improvement as metric (handle NaN)
+                max_improvement = comp.get("max_improvement", 0)
+                if not (pd.isna(max_improvement) or np.isinf(max_improvement)):
+                    mlflow.log_metric("max_improvement", float(max_improvement))
+                else:
+                    mlflow.log_param("max_improvement", str(max_improvement))
 
-                sig = comp["statistical_significance"]
-                mlflow.log_metric("t_statistic", sig["t_statistic"])
-                mlflow.log_metric("p_value", sig["p_value"])
-                mlflow.log_param("significant", sig["significant"])
+                # Log statistical significance
+                sig = comp.get("statistical_significance", {})
+                
+                t_stat = sig.get("t_statistic", 0)
+                if not (pd.isna(t_stat) or np.isinf(t_stat)):
+                    mlflow.log_metric("t_statistic", float(t_stat))
+                else:
+                    mlflow.log_param("t_statistic", str(t_stat))
+                
+                p_val = sig.get("p_value", 1.0)
+                if not (pd.isna(p_val) or np.isinf(p_val)):
+                    mlflow.log_metric("p_value", float(p_val))
+                else:
+                    mlflow.log_param("p_value", str(p_val))
+                
+                mlflow.log_param("significant", sig.get("significant", False))
+            
+            # Get run ID while still in context
+            run_id = run.info.run_id
 
-        run_id = mlflow.active_run().info.run_id
         logger.info(f"A/B test results logged to MLflow run {run_id}")
-
         return run_id
 
 
@@ -289,14 +352,17 @@ def sequential_ab_test(
         pred_b = model_b.predict(batch_data.drop(columns=["Class"]))
         true_labels = batch_data["Class"].values
 
-        # Calculate batch metrics
-        a_correct = (pred_a == true_labels).sum()
-        b_correct = (pred_b == true_labels).sum()
+        # Calculate batch metrics using routes
+        a_mask = ~routes
+        b_mask = routes
 
-        cumulative_a_correct += a_correct
-        cumulative_b_correct += b_correct
-        total_a += len(pred_a)
-        total_b += len(pred_b)
+        a_correct = (pred_a[a_mask] == true_labels[a_mask]).sum()
+        b_correct = (pred_b[b_mask] == true_labels[b_mask]).sum()
+
+        cumulative_a_correct += int(a_correct)
+        cumulative_b_correct += int(b_correct)
+        total_a += int(a_mask.sum())
+        total_b += int(b_mask.sum())
 
         # Calculate current conversion rates
         rate_a = cumulative_a_correct / total_a if total_a > 0 else 0
