@@ -1,0 +1,30 @@
+# Dev overlay patch for the ccf-api Deployment.
+#
+# NOTE: kustomize merges this with the base Deployment at `./../../base`.
+# Only the fields listed here are overridden; everything else (probes,
+# securityContext, affinity, topologySpreadConstraints, lifecycle) is
+# inherited unchanged.
+#
+# To point at a real registry image, set it via the overlay's `images:` block
+# in kustomization.yaml rather than here:
+#   images:
+#     - name: ccf-serving
+#       newTag: 1.0.0-dev
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ccf-api
+  namespace: ccf-dev
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: ccf-api
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
