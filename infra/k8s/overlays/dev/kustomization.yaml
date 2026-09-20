@@ -1,0 +1,35 @@
+# Dev overlay — cheap local cluster (kind / minikube / EKS dev).
+# Apply: kubectl apply -k infra/k8s/overlays/dev
+#
+# The `namespace: ccf-dev` field retargets ALL resources pulled from base.
+# Kustomize's namespace transformer also renames the base Namespace object
+# to `ccf-dev`, so no separate namespace.yaml is needed here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ccf-dev
+
+resources:
+  - ../../base
+
+labels:
+  - includeSelectors: false
+    pairs:
+      env: dev
+
+# 1-replica local patch (resources only; the base carries probes,
+# securityContext, affinity, topologySpreadConstraints, lifecycle).
+patches:
+  - path: deployment.yaml
+    target:
+      kind: Deployment
+      name: ccf-api
+
+# Local friendly image; to push from a real registry set `newName` to your
+# registry/FQDN and `newTag` to the build sha, e.g.
+#   - name: ccf-serving
+#     newTag: 1.0.0-dev
+images:
+  - name: ccf-serving
+    newName: ccf-local
+    newTag: dev
