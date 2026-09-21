@@ -1,0 +1,30 @@
+# Base kustomization.
+#
+# The `namespace: ccf` field below sets the default namespace for all
+# resources. Kustomize's namespace transformer ALSO renames the Namespace
+# object to match, so:
+#   - `kubectl apply -k base`       → creates namespace `ccf` + resources
+#   - `kubectl apply -k overlays/dev` → creates namespace `ccf-dev` + resources
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ccf
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - hpa.yaml
+  - pdb.yaml
+  - networkpolicy.yaml
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/name: ccf
+      app.kubernetes.io/part-of: fraud-detection
+      app.kubernetes.io/component: api
+# Default image tag for the ccf-serving image. Overlays override this to
+# point at their own build (e.g. 1.0.0-dev, 1.0.0-stage, <git-sha>).
+images:
+  - name: ccf-serving
+    newTag: "1.0.0"
