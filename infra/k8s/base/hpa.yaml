@@ -1,0 +1,38 @@
+# Horizontal Pod Autoscaler for the serving API.
+# Requires the metrics-server to be installed in the cluster; prod also adds
+# a 3rd metric (p99 latency from Prometheus via prometheus-adapter).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ccf-api
+  labels:
+    app.kubernetes.io/name: ccf-api
+    app.kubernetes.io/part-of: fraud-detection
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ccf-api
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    # Slow the cool-down so one slow pod doesn't trigger an oscillating
+    # scale-down; faster scale-up for traffic spikes.
+    scaleDown:
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 60
