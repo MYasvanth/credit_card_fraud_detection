@@ -1,0 +1,17 @@
+# PodDisruptionBudget: ensure at least 2 replicas of ccf-api remain available
+# during node drains, upgrades, or voluntary disruptions.
+#
+# Base default = 2 (sized for prod). Dev/staging overlays lower to 1.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ccf-api
+  labels:
+    app.kubernetes.io/name: ccf-api
+    app.kubernetes.io/part-of: fraud-detection
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ccf-api
