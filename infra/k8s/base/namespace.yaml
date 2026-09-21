@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ccf
+  labels:
+    app.kubernetes.io/name: ccf
+    app.kubernetes.io/part-of: fraud-detection
+    app.kubernetes.io/managed-by: kustomize
+    # Override in overlay: ccf-dev, ccf-stage, ccf-prod
+    app.kubernetes.io/environment: base
