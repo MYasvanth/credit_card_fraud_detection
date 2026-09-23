@@ -1,0 +1,51 @@
+# NetworkPolicy: restrict traffic to/from the ccf-api Deployment.
+# Requires a CNI plugin with NetworkPolicy support (Cilium / Calico).
+#
+# Ingress: allow only on port 8000 from pods in the same namespace
+#          (extending to other NSes (e.g. ingress) is done in overlays).
+# Egress: allow DNS + the model/data backend(s) if you add them later.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ccf-api
+  namespace: ccf
+  labels:
+    app.kubernetes.io/name: ccf-api
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ccf-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        # Same-namespace peers (e.g. canary test pods, sidecars)
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: fraud-detection
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow egress to pod IPs (in-cluster services) — tighten in other envs
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32   # block AWS metadata
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
