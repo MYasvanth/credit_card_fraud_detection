@@ -1,0 +1,23 @@
+# ClusterIP Service for the fraud detection API.
+#   - Base uses port 80 → 8000 so Ingress config is simple (nginx/ALB).
+#   - No NodePort / LoadBalancer in base. Dev overlay may patch to
+#     LoadBalancer or NodePort for kind/minikube ergonomics.
+#   - A second Service (ccf-explain) is planned for the GenAI bulkhead
+#     path (Phase 4b) so the batch path can be scaled independently.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ccf-api
+  labels:
+    app.kubernetes.io/name: ccf-api
+    app.kubernetes.io/part-of: fraud-detection
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ccf-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http   # -> containerPort 8000
+      protocol: TCP
